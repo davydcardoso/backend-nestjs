@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Params {
+  id          String  @id @default(uuid())
+  name        String  @unique @db.VarChar(250)
+  companiesId String? @map("company_id")
+  value       String
+
+  createdAt DateTime? @map("created_at") @db.Date
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  Companies Companies? @relation(fields: [companiesId], references: [id])
+
+  @@map("params")
+}
+
+model Modules {
+  id          String  @id @default(uuid())
+  companiesId String? @map("company_id")
+  name        String  @unique @db.VarChar(150)
+  description String? @db.VarChar(255)
+  buttonIcon  String  @map("button_icon") @db.Text
+
+  createdAt DateTime? @map("created_at") @db.Date
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  Companies Companies? @relation(fields: [companiesId], references: [id])
+
+  @@map("modules")
+}
+
+model Companies {
+  id        String  @id @default(uuid())
+  name      String  @db.VarChar(250)
+  email     String  @unique @db.VarChar(250)
+  document  String  @unique @db.VarChar(21)
+  isEnabled Boolean @default(false) @map("is_enabled")
+
+  createdAt DateTime? @map("created_at") @db.Date
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  Params  Params[]
+  Users   Users[]
+  Modules Modules[]
+
+  @@map("companies")
+}
+
+enum AccessLevel {
+  DEVELOPER
+  ADMINISTRATOR
+  SUPORT
+  CLIENT
+}
+
+model Users {
+  id          String      @id @default(uuid())
+  name        String
+  email       String      @unique
+  password    String
+  document    String      @unique @db.VarChar(21)
+  companiesId String      @map("company_id")
+  accessLevel AccessLevel @default(CLIENT) @map("access_level")
+
+  createdAt DateTime? @map("created_at") @db.Date
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  companies Companies @relation(fields: [companiesId], references: [id])
+
+  @@map("users")
+}
