@@ -13,11 +13,16 @@ import { Email } from '../domain/entity/users/email';
 import { Password } from '../domain/entity/users/password';
 import { UserRepository } from '../infra/repositories/user.repository';
 import { AlreadyExistsUserAccountError } from './errors/already-exists-user-account.error';
+import { Document } from '../domain/entity/users/document';
+import { AccessLevel } from '../domain/entity/users/access-level';
 
 type CreateUserUseCaseProps = {
   name: string;
   email: string;
   password: string;
+  document: string;
+  accessLevel: string;
+  companyId: string;
 };
 
 type CreateUserUseCaseResponseProps = Either<Error, object>;
@@ -29,28 +34,54 @@ export class CreateUserUseCase implements UseCase {
   async perform({
     name,
     email,
+    document,
     password,
+    companyId,
+    accessLevel,
   }: CreateUserUseCaseProps): Promise<CreateUserUseCaseResponseProps> {
     const nameOrError = Name.create(name);
     const emailOrError = Email.create(email);
     const passwordOrError = Password.create(password);
+    const documentOrError = Document.create(document);
+    const accessLevelOrError = AccessLevel.create(accessLevel);
 
     if (nameOrError.isLeft()) {
-      return left(new InvalidNameUserError());
+      return left(nameOrError.value);
     }
 
     if (emailOrError.isLeft()) {
-      return left(new InvalidUserEmailError(email));
+      return left(emailOrError.value);
     }
 
     if (passwordOrError.isLeft()) {
-      return left(new InvalidPasswordUserError());
+      return left(passwordOrError.value);
+    }
+
+    if (documentOrError.isLeft()) {
+      return left(documentOrError.value);
+    }
+
+    if (accessLevelOrError.isLeft()) {
+      return left(accessLevelOrError.value);
+    }
+
+    if (
+      !companyId ||
+      companyId.trim().length < 5 ||
+      companyId.trim().length > 255
+    ) {
+      return left(new Error('Id da empresa é invalido'));
     }
 
     const userOrError = User.create({
+      companyId,
       name: nameOrError.value,
       email: emailOrError.value,
       password: passwordOrError.value,
+      document: documentOrError.value,
+      accessLevel: accessLevelOrError.value,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     if (userOrError.isLeft()) {

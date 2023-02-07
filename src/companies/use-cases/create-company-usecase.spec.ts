@@ -28,10 +28,13 @@ describe('CreateCompanyUseCase', () => {
 
     prisma = new PrismaClient();
 
+    await prisma.companies.delete({ where: { email: 'prodata@test.com' } });
+
     usecase = module.get<CreateCompanyUseCase>(CreateCompanyUseCase);
   });
 
   it('Test with class constructed', () => {
+    expect(prisma).toBeDefined();
     expect(usecase).toBeDefined();
   });
 
@@ -124,33 +127,6 @@ describe('CreateCompanyUseCase', () => {
     });
   });
 
-  it('Create Company: testing create company in case account already exists', async () => {
-    const data = {
-      name: 'Prodata',
-      email: 'prodata@test2.com',
-      document: '00.000.000/0001-11',
-    };
-
-    await prisma.companies.create({ data });
-
-    const resultErrorEmailAlreadyExists = await usecase.perform({ ...data });
-
-    expect(resultErrorEmailAlreadyExists.value as Error).toEqual(
-      new AlreadyExistsCompanyAccountWithThisAddressEmailError(),
-    );
-
-    const resultErrorDocumentAlreadyExists = await usecase.perform({
-      ...data,
-      email: 'prodata@teste2.com',
-    });
-
-    expect(resultErrorDocumentAlreadyExists.value as Error).toEqual(
-      new AlreadyExistsCompanyAccountWithThisDocumentError(),
-    );
-
-    await prisma.companies.delete({ where: { email: 'prodata@test2.com' } });
-  });
-
   it('Create Company: Testing create company in case success', async () => {
     const data = {
       name: 'Prodata',
@@ -165,8 +141,31 @@ describe('CreateCompanyUseCase', () => {
     expect(result.value as object).toBeTruthy();
   });
 
+  it('Create Company: testing create company in case account already exists', async () => {
+    const data = {
+      name: 'Prodata',
+      email: 'prodata@test2.com',
+      document: '00.000.000/0001-11',
+    };
+
+    const resultErrorEmailAlreadyExists = await usecase.perform({
+      ...data,
+      document: '000.000.000-18',
+    });
+    expect(resultErrorEmailAlreadyExists.value as Error).toEqual(
+      new AlreadyExistsCompanyAccountWithThisAddressEmailError(),
+    );
+
+    const resultErrorDocumentAlreadyExists = await usecase.perform({
+      ...data,
+      email: 'prodata@teste2.com',
+    });
+    expect(resultErrorDocumentAlreadyExists.value as Error).toEqual(
+      new AlreadyExistsCompanyAccountWithThisDocumentError(),
+    );
+  });
+
   afterAll(async () => {
-    await prisma.companies.delete({ where: { email: 'prodata@test.com' } });
     await prisma.$disconnect();
   });
 });
