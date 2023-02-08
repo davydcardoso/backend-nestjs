@@ -115,6 +115,8 @@ describe('CompaniesController', () => {
           where: { email: data.email },
         });
 
+        console.log(result.body);
+
         expect(result.statusCode).toBe(201);
         expect(user).toBeTruthy();
       });

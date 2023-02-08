@@ -28,8 +28,6 @@ describe('CreateCompanyUseCase', () => {
 
     prisma = new PrismaClient();
 
-    await prisma.companies.delete({ where: { email: 'prodata@test.com' } });
-
     usecase = module.get<CreateCompanyUseCase>(CreateCompanyUseCase);
   });
 
@@ -38,13 +36,13 @@ describe('CreateCompanyUseCase', () => {
     expect(usecase).toBeDefined();
   });
 
-  describe('Create Company: Testing usecases with payload', () => {
-    const data = {
-      name: 'Prodata',
-      email: 'prodata@mail.com',
-      document: '00.000.000/0001-11',
-    };
+  const data = {
+    name: 'Prodata',
+    email: 'prodata@testcreatecompany.com',
+    document: '00.000.000/0001-11',
+  };
 
+  describe('Create Company: Testing usecases with payload', () => {
     it('Create Company: Testing create company with company name invalid', async () => {
       const resultWithNameIsNull = await usecase.perform({
         ...data,
@@ -128,12 +126,6 @@ describe('CreateCompanyUseCase', () => {
   });
 
   it('Create Company: Testing create company in case success', async () => {
-    const data = {
-      name: 'Prodata',
-      email: 'prodata@test.com',
-      document: '00.000.000/0001-11',
-    };
-
     const result = await usecase.perform({ ...data });
 
     expect(result.isLeft()).toBe(false);
@@ -142,12 +134,6 @@ describe('CreateCompanyUseCase', () => {
   });
 
   it('Create Company: testing create company in case account already exists', async () => {
-    const data = {
-      name: 'Prodata',
-      email: 'prodata@test2.com',
-      document: '00.000.000/0001-11',
-    };
-
     const resultErrorEmailAlreadyExists = await usecase.perform({
       ...data,
       document: '000.000.000-18',
@@ -166,6 +152,7 @@ describe('CreateCompanyUseCase', () => {
   });
 
   afterAll(async () => {
+    await 
     await prisma.$disconnect();
   });
 });
