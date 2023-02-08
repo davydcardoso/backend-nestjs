@@ -1,18 +1,28 @@
+import { Injectable } from '@nestjs/common';
 import { CompanyRepositoryContract } from 'src/companies/contracts/repositories/company.repository.contract';
 import { CompanyEntity } from 'src/companies/domain/entity/companies/companies';
 import { Repository } from 'src/core/domain/repository';
 
+@Injectable()
 export class CompanyRepositoryInMemory
   implements Repository<CompanyEntity>, CompanyRepositoryContract
 {
-  constructor(public items: CompanyEntity[]) {}
+  public items: CompanyEntity[];
+
+  constructor() {
+    this.items = [];
+  }
 
   async getByEmail(email: string): Promise<any> {
-    throw new Error('Method not implemented.');
+    const company = this.items.find((item) => item.email.value == email);
+
+    return company;
   }
 
   async getByDocument(document: string): Promise<any> {
-    throw new Error('Method not implemented.');
+    const company = this.items.find((item) => item.document.value == document);
+
+    return company;
   }
 
   async create(data: CompanyEntity): Promise<void> {
@@ -53,10 +63,16 @@ export class CompanyRepositoryInMemory
   }
 
   async getMany(filter: Partial<CompanyEntity>): Promise<CompanyEntity[]> {
-    throw new Error('Method not implemented.');
+    return this.items;
   }
 
   async delete(id: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    this.items = [];
+
+    for (const item of this.items) {
+      if (item.id !== id) {
+        this.items.push(item);
+      }
+    }
   }
 }
