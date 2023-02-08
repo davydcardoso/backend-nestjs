@@ -31,11 +31,19 @@ describe('CompaniesController (e2e)', () => {
     expect(prisma).toBeDefined();
   });
 
-  const data = {
-    name: 'Prodata Informatica',
-    email: 'prodata@test.com',
-    document: '00.000.000/0001-11',
-  };
+  it('/POST: should error 400 if body is invalid', async () => {
+    app
+      .inject({
+        method: 'POST',
+        path: '/companies',
+        payload: {
+          name: 'Prodata Informatica',
+          email: 'prodata-test1@mail.com',
+          document: '000',
+        },
+      })
+      .then((result) => {});
+  });
 
   afterAll(async () => {
     await app.close();
