@@ -13,6 +13,10 @@ export class UserRepositoryInMemory
     this.users = [];
   }
 
+  async getByDocument(document: string): Promise<User> {
+    return this.users.find((user) => user.document.value === document);
+  }
+
   async create(data: User): Promise<void> {
     this.users.push(data);
   }
