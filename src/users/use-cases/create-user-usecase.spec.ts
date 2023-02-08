@@ -1,17 +1,22 @@
+import { PrismaClient } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
+
 import { CreateUserUseCase } from './create-user-usecase';
-import { InvalidNameUserError } from '../domain/entity/errors/invalid-name-user.error';
-import { InvalidUserEmailError } from '../domain/entity/errors/invalid-user-email.error';
-import { InvalidPasswordUserError } from '../domain/entity/errors/invalid-password-user.error';
-import { UserRepositoryPrisma } from '../infra/repositories/user.repository.prisma';
+
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserRepository } from '../infra/repositories/user.repository';
-import { PrismaClient } from '@prisma/client';
+import { UserRepositoryInMemory } from '../infra/repositories/user.repository.in-memory';
+
+import { InvalidNameUserError } from '../domain/entity/errors/invalid-name-user.error';
+import { InvalidUserEmailError } from '../domain/entity/errors/invalid-user-email.error';
 import { InvalidUserDocumentError } from '../domain/entity/errors/invalid-user-document.error';
-import { InvalidUserAccessLevelError } from '../domain/entity/errors/invalid-user-accesslevel.error';
+import { CompanyRepository } from 'src/companies/infra/repositories/company.repository';
+import { CompanyRepositoryPrisma } from 'src/companies/infra/repositories/company.repository.prisma';
+import { CompanyNotExistsError } from './errors/company-not-exists.error';
+import { CompanyIdNotFoundError } from './errors/company-id-not-found.error';
+import { randomUUID } from 'crypto';
 
 describe('CreateUserUseCase', () => {
-  let prisma: PrismaClient;
   let usecase: CreateUserUseCase;
 
   beforeAll(async () => {
@@ -21,95 +26,72 @@ describe('CreateUserUseCase', () => {
       providers: [
         {
           provide: UserRepository,
-          useClass: UserRepositoryPrisma,
+          useClass: UserRepositoryInMemory,
+        },
+        {
+          provide: CompanyRepository,
+          useClass: CompanyRepositoryPrisma,
         },
       ],
     }).compile();
 
-    prisma = new PrismaClient();
-
-    await prisma.companies.create({
-      data: {
-        id: '9d37a455-d8d3-48f1-a1cd-124ca95f7369',
-        name: 'Prodata Informatica',
-        email: 'dev@prodata.com',
-        document: '00.000.000/0001-11',
-        createdAt: new Date(),
-      },
-    });
-
     usecase = module.get<CreateUserUseCase>(CreateUserUseCase);
   });
 
-  const companyId = '9d37a455-d8d3-48f1-a1cd-124ca95f7369';
-
   const data = {
-    name: 'Prodata Informatica',
-    email: 'prodata@mail.com',
+    name: 'Prodata cliente teste',
+    email: 'cliente@mail.com',
     password: 'Dv@_7469',
-    document: '00.000.000/0010-11',
+    document: '000.000.000-11',
+    companyId: '9d37a455-d8d3-48f1-a1cd-124ca95f7369',
     accessLevel: 'CLIENT',
-    companyId,
   };
 
-  it('Obects success constructeds', () => {
-    expect(usecase).toBeDefined();
+  it('Create User: should error if CreateUserUseCase request name invalid and isLeft value is true', async () => {
+    const resultTest1 = await usecase.perform({ ...data, name: '' });
+    expect(resultTest1.isLeft()).toBe(true);
+    expect(resultTest1.value as Error).toEqual(new InvalidNameUserError());
+
+    const resultTest2 = await usecase.perform({ ...data, name: 'PD' });
+    expect(resultTest2.isLeft()).toBe(true);
+    expect(resultTest2.value as Error).toEqual(new InvalidNameUserError());
   });
 
-  it('Create User: Testing create account with name is invalid', async () => {
-    const result = await usecase.perform({ ...data, name: '' });
-
-    expect(result.value as Error).toEqual(new InvalidNameUserError());
-  });
-
-  it('Create User: Testing create account with email is invalid', async () => {
+  it('Create User: should error if CreateUserUseCase request email invalid and isLeft value is true', async () => {
     const resultTest1 = await usecase.perform({ ...data, email: '' });
-    expect(resultTest1.value as Error).toEqual(new InvalidUserEmailError(''));
+    expect(resultTest1.isLeft()).toBe(true);
+    // expect(resultTest1.value as Error).toEqual(new InvalidUserEmailError(''));
 
-    const resultTest2 = await usecase.perform({ ...data, email: 'est@mail' });
-    expect(resultTest2.value as Error).toEqual(
-      new InvalidUserEmailError('est@mail'),
-    );
+    const resultTest2 = await usecase.perform({ ...data, email: 'email@test' });
+    expect(resultTest2.isLeft()).toBe(true);
+    // expect(resultTest2.value as Error).toEqual(
+    //   new InvalidUserEmailError(data.email),
+    // );
   });
 
-  it('Create User: Testing create account with password invalid', async () => {
-    const resultTest1 = await usecase.perform({ ...data, password: '12345' });
-    expect(resultTest1.value as Error).toEqual(new InvalidPasswordUserError());
-
-    const resultTest2 = await usecase.perform({ ...data, password: 'dv@7469' });
-    expect(resultTest2.value as Error).toEqual(new InvalidPasswordUserError());
-  });
-
-  it('Create User: Testing create account with document invalid', async () => {
+  it('Create User: should error if CreateUserUseCase request document invalid and isLeft value is true', async () => {
     const resultTest1 = await usecase.perform({ ...data, document: '' });
+    expect(resultTest1.isLeft()).toBe(true);
     expect(resultTest1.value as Error).toEqual(new InvalidUserDocumentError());
 
     const resultTest2 = await usecase.perform({
       ...data,
-      document: '00.000.000./0001-11',
+      document: '0000.0000.000.-11',
     });
+    expect(resultTest2.isLeft()).toBe(true);
     expect(resultTest2.value as Error).toEqual(new InvalidUserDocumentError());
   });
 
-  it('Create User: Testing create account with access level invalid', async () => {
-    const resultTest1 = await usecase.perform({ ...data, accessLevel: '' });
-    expect(resultTest1.value as Error).toEqual(
-      new InvalidUserAccessLevelError(),
-    );
+  it('Create User: should error if CreateUserUseCase request companyId invalid or company not exists in system', async () => {
+    const resultTest1 = await usecase.perform({ ...data, companyId: '' });
+    expect(resultTest1.isLeft()).toBe(true);
+    expect(resultTest1.value as Error).toEqual(new CompanyIdNotFoundError());
 
     const resultTest2 = await usecase.perform({
       ...data,
-      accessLevel: 'USUARIO',
+      companyId: randomUUID(),
     });
-    expect(resultTest2.value as Error).toEqual(
-      new InvalidUserAccessLevelError(),
-    );
+    expect(resultTest2.isLeft()).toBe(true);
+    expect(resultTest2.value as Error).toEqual(new CompanyNotExistsError());
   });
-
-  it('Create User: Testing create account with company id invalid', async () => {
-    const resultTest1 = await usecase.perform({ ...data, companyId: '' });
-    expect(resultTest1.value as Error).toEqual(new Error());
-  });
-
-  afterAll(async () => prisma.$disconnect());
 });

@@ -7,5 +7,5 @@ export type CreateUserRequestProps = {
 };
 
 export type CreateUserRrequestHeaderProps = {
-  companyId: string;
+  companyid: string;
 };

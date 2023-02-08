@@ -4,13 +4,26 @@ import { User } from 'src/users/domain/entity/users/user.entity';
 import { Repository } from 'src/core/domain/repository';
 import { UserMapper } from 'src/users/mappers/user.mapper';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserRepositoryContract } from 'src/users/contracts/repositories/users.repository.contract';
 
 @Injectable()
-export class UserRepositoryPrisma implements Repository<User> {
+export class UserRepositoryPrisma
+  implements Repository<User>, UserRepositoryContract
+{
   private readonly mapper: UserMapper;
 
   constructor(private readonly prisma: PrismaService) {
     this.mapper = new UserMapper();
+  }
+
+  async getByDocument(document: string): Promise<any> {
+    const user = await this.prisma.users.findUnique({ where: { document } });
+
+    if (!user) {
+      return null;
+    }
+
+    return this.mapper.toDomain(user);
   }
 
   async create(user: User): Promise<void> {

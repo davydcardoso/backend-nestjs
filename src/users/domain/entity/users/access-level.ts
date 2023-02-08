@@ -2,10 +2,10 @@ import { Either, left, right } from 'src/core/logic/Either';
 import { InvalidUserAccessLevelError } from '../errors/invalid-user-accesslevel.error';
 
 export enum AccessLevelProps {
-  'DEVELOPER',
-  'ADMINISTRATOR',
-  'SUPORT',
-  'CLIENT',
+  DEVELOPER,
+  ADMINISTRATOR,
+  SUPORT,
+  CLIENT,
 }
 
 export class AccessLevel {
@@ -34,7 +34,7 @@ export class AccessLevel {
   static create(
     value: string,
   ): Either<InvalidUserAccessLevelError, AccessLevel> {
-    if (this.validate(value)) {
+    if (!this.validate(value)) {
       return left(new InvalidUserAccessLevelError());
     }
 
