@@ -9,3 +9,8 @@ export type CreateUserRequestProps = {
 export type CreateUserRrequestHeaderProps = {
   companyid: string;
 };
+
+export type GetUserAccountRequestHeaders = {
+  userId: string;
+  companyId: string;
+};
