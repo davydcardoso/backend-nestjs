@@ -5,6 +5,7 @@ import {
 import { AppModule } from 'src/app.module';
 import { PrismaClient } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
+import { USER_ADMIN_DOCUMENT_1 } from '../prisma/seed.constants';
 
 describe('AuthController (e2e)', () => {
   let app: NestFastifyApplication;
@@ -118,9 +119,10 @@ describe('AuthController (e2e)', () => {
   });
 
   it('should error if request password is not correct', async () => {
-    const token = Buffer.from('00.000.000/0010-11:Dv@_8552', 'ascii').toString(
-      'base64',
-    );
+    const token = Buffer.from(
+      `${USER_ADMIN_DOCUMENT_1}:Dv@_82465`,
+      'ascii',
+    ).toString('base64');
 
     return app
       .inject({
@@ -137,9 +139,10 @@ describe('AuthController (e2e)', () => {
   });
 
   it('should success login account', async () => {
-    const token = Buffer.from('00.000.000/0010-11:Dv@_7469', 'ascii').toString(
-      'base64',
-    );
+    const token = Buffer.from(
+      `${USER_ADMIN_DOCUMENT_1}:Dv@_824657`,
+      'ascii',
+    ).toString('base64');
 
     return app
       .inject({
