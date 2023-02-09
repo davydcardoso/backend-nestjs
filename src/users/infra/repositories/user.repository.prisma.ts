@@ -16,7 +16,7 @@ export class UserRepositoryPrisma
     this.mapper = new UserMapper();
   }
 
-  async getByDocument(document: string): Promise<any> {
+  async getByDocument(document: string): Promise<User> {
     const user = await this.prisma.users.findUnique({ where: { document } });
 
     if (!user) {
