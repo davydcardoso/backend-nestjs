@@ -10,6 +10,7 @@ import { Document } from 'src/users/domain/entity/users/document';
 import { Password } from 'src/users/domain/entity/users/password';
 import { AccessLevel } from 'src/users/domain/entity/users/access-level';
 import { randomUUID } from 'crypto';
+import { COMPANY_ADMIN_ID, USER_ADMIN_ID_1 } from 'src/prisma/seed.constants';
 
 export function createAndAuthenticateUser() {
   const name = Name.create('John Doe').value as Name;
@@ -25,11 +26,11 @@ export function createAndAuthenticateUser() {
       password,
       document,
       accessLevel,
-      companyId: '9d37a455-d8d3-48f1-a1cd-124ca95f7369',
+      companyId: COMPANY_ADMIN_ID,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-    'ded50456-0f37-489d-8413-53f7262aa44f',
+    USER_ADMIN_ID_1,
   ).value as User;
 
   const accessToken = sign(
