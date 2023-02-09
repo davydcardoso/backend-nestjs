@@ -1,20 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { CreateUserUseCase } from './create-user-usecase';
 
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserRepository } from '../infra/repositories/user.repository';
+import { CompanyRepository } from 'src/companies/infra/repositories/company.repository';
 import { UserRepositoryInMemory } from '../infra/repositories/user.repository.in-memory';
+import { CompanyRepositoryPrisma } from 'src/companies/infra/repositories/company.repository.prisma';
 
 import { InvalidNameUserError } from '../domain/entity/errors/invalid-name-user.error';
-import { InvalidUserEmailError } from '../domain/entity/errors/invalid-user-email.error';
-import { InvalidUserDocumentError } from '../domain/entity/errors/invalid-user-document.error';
-import { CompanyRepository } from 'src/companies/infra/repositories/company.repository';
-import { CompanyRepositoryPrisma } from 'src/companies/infra/repositories/company.repository.prisma';
 import { CompanyNotExistsError } from './errors/company-not-exists.error';
 import { CompanyIdNotFoundError } from './errors/company-id-not-found.error';
-import { randomUUID } from 'crypto';
+import { InvalidUserDocumentError } from '../domain/entity/errors/invalid-user-document.error';
 
 describe('CreateUserUseCase', () => {
   let usecase: CreateUserUseCase;

@@ -8,9 +8,6 @@ import {
   Headers,
 } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
-import { ApiResponse } from '@nestjs/swagger';
-import { ApiCreatedResponse } from '@nestjs/swagger/dist';
-import { Response } from 'express';
 import {
   CreateUserRequestProps,
   CreateUserRrequestHeaderProps,
@@ -23,7 +20,6 @@ export class UsersController {
   constructor(private readonly createUserUseCase: CreateUserUseCase) {}
 
   @Post()
-  // @ApiCreatedResponse({ description: 'Usuário criado com sucesso' })
   async create(
     @Body() body: CreateUserRequestProps,
     @Headers() headers: CreateUserRrequestHeaderProps,
@@ -52,5 +48,7 @@ export class UsersController {
           throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }
     }
+
+    return result.value;
   }
 }

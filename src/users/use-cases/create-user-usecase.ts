@@ -31,8 +31,18 @@ type CreateUserUseCaseProps = {
   companyId: string;
 };
 
-type CreateUserUseCaseResponseProps = Either<Error, object>;
+type CreateUserUseCaseResponse = Either<Error, CreateUserUseCaseResponseProps>;
 
+type CreateUserUseCaseResponseProps = {
+  message: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    document: string;
+    accessLevel: string;
+  };
+};
 @Injectable()
 export class CreateUserUseCase implements UseCase {
   constructor(
@@ -47,7 +57,7 @@ export class CreateUserUseCase implements UseCase {
     password,
     companyId,
     accessLevel,
-  }: CreateUserUseCaseProps): Promise<CreateUserUseCaseResponseProps> {
+  }: CreateUserUseCaseProps): Promise<CreateUserUseCaseResponse> {
     const nameOrError = Name.create(name);
     const emailOrError = Email.create(email);
     const passwordOrError = Password.create(password);
@@ -119,6 +129,15 @@ export class CreateUserUseCase implements UseCase {
 
     await this.userRepository.create(user);
 
-    return right({});
+    return right({
+      message: 'Usuário criado no sistema com sucesso',
+      user: {
+        id: user.id,
+        name: user.name.value,
+        email: user.email.value,
+        document: user.document.value,
+        accessLevel: user.accessLevel.value,
+      },
+    });
   }
 }
