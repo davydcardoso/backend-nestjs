@@ -6,6 +6,7 @@ import {
   Res,
   Post,
   Headers,
+  Get,
 } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import {
@@ -50,5 +51,12 @@ export class UsersController {
     }
 
     return result.value;
+  }
+
+  @Get('myAccount')
+  async getAccount(@Headers() headers: any): Promise<any> {
+    console.log(headers);
+
+    return {};
   }
 }

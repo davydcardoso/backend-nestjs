@@ -19,6 +19,7 @@ import { CompanyRepositoryPrisma } from 'src/companies/infra/repositories/compan
       signOptions: { expiresIn: '60s' },
     }),
   ],
+  exports: [AuthService],
   providers: [
     {
       provide: UserRepository,

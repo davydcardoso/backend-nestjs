@@ -1,11 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { FastifyAdapter } from '@nestjs/platform-fastify/adapters';
-import { PrismaClient } from '@prisma/client';
-import { AppModule } from 'src/app.module';
-import { hash } from 'bcrypt';
 import { randomUUID } from 'crypto';
+import { PrismaClient } from '@prisma/client';
+import { Test, TestingModule } from '@nestjs/testing';
+
+import { AppModule } from 'src/app.module';
+
+import { FastifyAdapter } from '@nestjs/platform-fastify/adapters';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { createAndAuthenticateUser } from '../../../../test/user-factory';
 
 describe('UserController (e2e)', () => {
   let app: NestFastifyApplication;
@@ -39,6 +40,10 @@ describe('UserController (e2e)', () => {
     password: string;
     document: string;
     accessLevel: string;
+  };
+
+  type ResponseBodyError = {
+    message: string;
   };
 
   describe('/POST Create User', () => {
@@ -153,6 +158,63 @@ describe('UserController (e2e)', () => {
         })
         .then((result) => {
           expect(result.statusCode).toBe(401);
+        });
+    });
+  });
+
+  describe('/POST Get Account data ', () => {
+    it('should error if request authorization header not informed', async () => {
+      return app
+        .inject({
+          method: 'GET',
+          path: '/users/myAccount',
+          headers: {},
+        })
+        .then((result) => {
+          expect(result.statusCode).toBe(401);
+
+          const { message } = JSON.parse(result.body) as ResponseBodyError;
+          expect(message).toEqual(
+            'Token do usuário não informado ou incorreto',
+          );
+        });
+    });
+
+    it('should error if authorization token is not valid', async () => {
+      return app
+        .inject({
+          method: 'GET',
+          path: '/users/myAccount',
+          headers: {
+            authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAiLCJlbWFpbCI6IkpvaG4gRG9lIn0.VGvJF5IrQBifEYnPl2E5cTKWoVbpfxKuCk7tdpT3v2U`,
+          },
+        })
+        .then((result) => {
+          expect(result.statusCode).toBe(401);
+
+          const { message } = JSON.parse(result.body) as ResponseBodyError;
+          expect(message).toEqual(
+            'Você não tem permissão para acessar está funcionalidade',
+          );
+        });
+    });
+
+    it('should success (200) if authorization token is valid', async () => {
+      const { accessToken } = createAndAuthenticateUser();
+
+      return app
+        .inject({
+          method: 'GET',
+          path: '/users/myAccount',
+          headers: { authorization: `Bearer ${accessToken}` },
+        })
+        .then((result) => {
+          expect(result.statusCode).toBe(200);
+
+          // const { message } = JSON.parse(result.body) as ResponseBodyError;
+          // expect(message).toEqual(
+          //   'Você não tem permissão para acessar está funcionalidade, token de acesso invalido',
+          // );
         });
     });
   });
