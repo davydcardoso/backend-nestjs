@@ -3,22 +3,27 @@ import {
   Controller,
   HttpException,
   HttpStatus,
-  Res,
   Post,
   Headers,
   Get,
 } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common/exceptions';
 import {
   CreateUserRequestProps,
   CreateUserRrequestHeaderProps,
-} from 'src/users/dtos/create-user.dto';
+  GetUserAccountRequestHeaders,
+} from 'src/users/dtos/user-controller.dto';
 import { CreateUserUseCase } from 'src/users/use-cases/create-user-usecase';
+import { GetUserAccountUseCase } from 'src/users/use-cases/get-user-account-usecase';
+
+import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { CompanyNotExistsError } from 'src/users/use-cases/errors/company-not-exists.error';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly createUserUseCase: CreateUserUseCase) {}
+  constructor(
+    private readonly createUserUseCase: CreateUserUseCase,
+    private readonly getUserAccountUseCase: GetUserAccountUseCase,
+  ) {}
 
   @Post()
   async create(
@@ -54,9 +59,22 @@ export class UsersController {
   }
 
   @Get('myAccount')
-  async getAccount(@Headers() headers: any): Promise<any> {
-    console.log(headers);
+  async getAccount(
+    @Headers() headers: GetUserAccountRequestHeaders,
+  ): Promise<any> {
+    const { userId } = headers;
 
-    return {};
+    const result = await this.getUserAccountUseCase.perform({ userId });
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      switch (error.constructor) {
+        default:
+          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    return result.value;
   }
 }

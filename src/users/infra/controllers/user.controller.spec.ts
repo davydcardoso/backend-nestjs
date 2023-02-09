@@ -202,6 +202,14 @@ describe('UserController (e2e)', () => {
     it('should success (200) if authorization token is valid', async () => {
       const { accessToken } = createAndAuthenticateUser();
 
+      type GetUserAccountUseCaseResponseProps = {
+        id: string;
+        name: string;
+        email: string;
+        document: string;
+        accessLevel: string;
+      };
+
       return app
         .inject({
           method: 'GET',
@@ -211,10 +219,15 @@ describe('UserController (e2e)', () => {
         .then((result) => {
           expect(result.statusCode).toBe(200);
 
-          // const { message } = JSON.parse(result.body) as ResponseBodyError;
-          // expect(message).toEqual(
-          //   'Você não tem permissão para acessar está funcionalidade, token de acesso invalido',
-          // );
+          const user = JSON.parse(
+            result.body,
+          ) as GetUserAccountUseCaseResponseProps;
+
+          expect(user.id).toBeTruthy();
+          expect(user.name).toBeTruthy();
+          expect(user.email).toBeTruthy();
+          expect(user.document).toBeTruthy();
+          expect(user.accessLevel).toBeTruthy();
         });
     });
   });
